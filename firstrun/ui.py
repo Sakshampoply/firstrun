@@ -46,9 +46,8 @@ header[data-testid="stHeader"] { background: transparent; }
   -webkit-background-clip: text; background-clip: text; color: transparent; }
 .fr-hero p.fr-tag { color: var(--muted); font-size: 1.05rem; margin: .3rem 0 0; }
 .fr-mode { font: 600 .85rem/1 var(--mono); letter-spacing: .12em; padding: .55rem .8rem; border-radius: 999px;
-  border: 1px solid var(--line); background: var(--panel); }
-.fr-mode.live { color: var(--pass); } .fr-mode.replay { color: var(--warn); border-color: rgba(251, 191, 36, .45);
-  position: fixed; top: 1rem; right: 1.5rem; z-index: 1001; background: var(--panel); }
+  border: 1px solid var(--line); background: var(--panel); position: fixed; top: 1rem; right: 1.5rem; z-index: 1001; }
+.fr-mode.live { color: var(--pass); } .fr-mode.replay { color: var(--warn); border-color: rgba(251, 191, 36, .45); }
 
 .fr-banner { border-radius: 14px; padding: .9rem 1.1rem; margin: .4rem 0 .2rem; font-size: 1.05rem;
   border: 1px solid; display: flex; gap: .7rem; align-items: baseline; }
@@ -231,6 +230,8 @@ def stats_html(events: list[Event], running: bool) -> str:
 
     if running:
         outcome = ("run", '<span class="fr-pulse"></span>Running', "agent at work")
+    elif terminal is None and events:
+        outcome = ("warn", "Interrupted", "a control was touched; run again")
     elif terminal is None:
         outcome = ("", "Ready", "paste a repo and run")
     elif terminal.type == "report_ready":
@@ -378,13 +379,7 @@ replaying = st.session_state.get("source") == "REPLAY"
 st.markdown(
     '<div class="fr-hero"><div><div class="fr-brand"><div class="fr-logo">▶</div>'
     '<div class="fr-word">FirstRun</div></div>'
-    '<p class="fr-tag">Paste a repo. Get a quickstart the agent actually ran.</p></div>'
-    + (
-        '<div class="fr-mode replay">● REPLAY</div>'
-        if mode == "Replay"
-        else '<div class="fr-mode live">● LIVE</div>'
-    )
-    + "</div>",
+    '<p class="fr-tag">Paste a repo. Get a quickstart the agent actually ran.</p></div></div>',
     unsafe_allow_html=True,
 )
 
@@ -426,6 +421,17 @@ if clicked:
     st.session_state["replay_name"] = selected.name if selected else ""
     st.session_state["recording"] = None
     replaying = mode == "Replay"
+
+# The pill labels the result on screen, not the toggle, so a replay never reads LIVE (D7).
+shown_replay = (
+    replaying if clicked or st.session_state.get("events") else mode == "Replay"
+)
+st.markdown(
+    '<div class="fr-mode replay">● REPLAY</div>'
+    if shown_replay
+    else '<div class="fr-mode live">● LIVE</div>',
+    unsafe_allow_html=True,
+)
 
 if replaying:
     name = st.session_state.get("replay_name", "")

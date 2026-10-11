@@ -128,6 +128,9 @@ def main(argv=None) -> int:
             for event in events:
                 if terminal is not None:
                     raise ValueError("event stream continued after its terminal event")
+                if args.replay and event.type in TERMINAL:
+                    # Keep the label next to the payoff; the top banner has scrolled away.
+                    console.print(Text("REPLAY · saved events", style="bold yellow"))
                 show(console, event)
                 if event.type in TERMINAL:
                     terminal = event.type

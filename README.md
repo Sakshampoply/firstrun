@@ -50,7 +50,9 @@ Two-minute script:
 1. Say: “FirstRun tries a repo's setup instructions and hands the next developer a quickstart backed by real runs.”
 2. Select **Live**, enter `fixtures/stale-readme`, then click **Run ▶**. Point out the missing requirements file, the install recovery, the stale module and its recovery, then the passing pytest and `pong` output. The stat tiles show commands, two recoveries and elapsed time.
 3. Point to the **Verified** outcome and report. Click **⬇ Download QUICKSTART.md** to hand the next developer the tested instructions.
-4. If the connection fails, select **Replay**, choose `fixture.jsonl`, then click **Replay ▶**. Say: “This is a replay of the verified laptop run.” The REPLAY pill remains visible while scrolling. Use **Fast replay** only if you need to skip the recorded pauses.
+4. If the connection fails, select **Replay**, choose `fixture.jsonl`, then click **Replay ▶**. Say: “This is a replay of the verified laptop run.” The REPLAY pill stays visible while scrolling and follows the result on screen. Turn on **Fast replay** before clicking if you want to skip the recorded pauses.
+
+Do not touch any control while a run is in progress: Streamlit reruns the page and stops the run (the Outcome tile then reads **Interrupted**; click Run again).
 
 Pre-demo checklist:
 
