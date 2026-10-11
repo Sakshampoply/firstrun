@@ -19,7 +19,7 @@ CSS = """
 <style>
 :root {
   --bg: #09090b; --panel: #111114; --panel-2: #17171c; --line: #27272a;
-  --text: #f4f4f5; --muted: #a1a1aa; --faint: #71717a;
+  --text: #f4f4f5; --muted: #a1a1aa; --faint: #9a9aa5;
   --violet: #8b5cf6; --cyan: #22d3ee;
   --pass: #34d399; --pass-bg: rgba(52, 211, 153, .12);
   --fail: #fb7185; --fail-bg: rgba(251, 113, 133, .12);
@@ -47,7 +47,8 @@ header[data-testid="stHeader"] { background: transparent; }
 .fr-hero p.fr-tag { color: var(--muted); font-size: 1.05rem; margin: .3rem 0 0; }
 .fr-mode { font: 600 .85rem/1 var(--mono); letter-spacing: .12em; padding: .55rem .8rem; border-radius: 999px;
   border: 1px solid var(--line); background: var(--panel); }
-.fr-mode.live { color: var(--pass); } .fr-mode.replay { color: var(--warn); border-color: rgba(251, 191, 36, .45); }
+.fr-mode.live { color: var(--pass); } .fr-mode.replay { color: var(--warn); border-color: rgba(251, 191, 36, .45);
+  position: fixed; top: 1rem; right: 1.5rem; z-index: 1001; background: var(--panel); }
 
 .fr-banner { border-radius: 14px; padding: .9rem 1.1rem; margin: .4rem 0 .2rem; font-size: 1.05rem;
   border: 1px solid; display: flex; gap: .7rem; align-items: baseline; }
@@ -130,7 +131,7 @@ header[data-testid="stHeader"] { background: transparent; }
 .fr-evidence .arrow { color: var(--faint); }
 .fr-report li.fr-gotcha { flex-wrap: nowrap; }
 .fr-gotcha .ico { color: var(--warn); font-weight: 800; }
-.fr-meta { color: var(--faint); font: .88rem var(--mono); margin-top: 1.3rem; }
+.fr-meta { color: var(--faint); font: .88rem var(--mono); margin-top: 1.3rem; overflow-wrap: anywhere; }
 
 [data-testid="stTextInputRootElement"] { height: 3.1rem; border-radius: 12px; background: var(--panel); }
 [data-testid="stTextInputRootElement"] input { font-family: var(--mono); font-size: 1.05rem; }
@@ -213,6 +214,7 @@ def event_html(event: Event) -> str:
     if event.type == "error":
         return f'<div class="fr-ev fail">{esc(event.msg or data.get("message", "Error"))}</div>'
     message = event.msg or data.get("summary", event.type)
+    message = message.replace(str(ROOT) + "/", "")
     if message.startswith("Verified:"):
         return f'<div class="fr-ev verified"><div class="fr-card verified">✓ {esc(message)}</div></div>'
     return f'<div class="fr-ev status">{esc(message)}</div>'
@@ -311,7 +313,7 @@ def report_html(report: dict) -> str:
     meta = " · ".join(
         part
         for part in (
-            esc(report.get("target", "")),
+            esc(str(report.get("target", "")).replace(str(ROOT) + "/", "")),
             f"{report['elapsed_s']}s" if "elapsed_s" in report else "",
             f"{report['tool_calls']} tool calls" if "tool_calls" in report else "",
         )
@@ -438,6 +440,8 @@ if replaying:
     )
 
 stats_slot = st.empty()
+if clicked:
+    stats_slot.markdown(stats_html([], running=True), unsafe_allow_html=True)
 activity, result = st.columns([1, 1.1], gap="large")
 with activity:
     st.markdown('<div class="fr-h">Activity</div>', unsafe_allow_html=True)

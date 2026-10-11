@@ -46,6 +46,8 @@ def show(console: Console, event: Event) -> None:
         if not event.msg and data.get("next_cmd"):
             console.print(Text("Next: " + data["next_cmd"], style="yellow"))
     elif event.type in {"report_ready", "blocked"}:
+        if event.type == "report_ready" and event.msg:
+            console.print(Text(event.msg, style="bold green"))
         if event.type == "blocked":
             console.print(
                 Text("BLOCKED: " + data.get("reason", event.msg), style="yellow")
