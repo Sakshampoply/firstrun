@@ -10,7 +10,7 @@ from firstrun.runner import VENV_CMD, CommandResult
 
 STATUSES = ("passed", "failed", "untested")
 MAX_READ_FIRST = 5
-PRELUDE_NOTES = {VENV_CMD: "activate with: source .venv/bin/activate"}
+PRELUDE_NOTES = {VENV_CMD: "activate with `source .venv/bin/activate`"}
 
 TOP = {"target": "text?", "name": "text", "summary": "text"}
 READ_FIRST = {"path": "text", "why": "text?"}
@@ -92,7 +92,7 @@ def partial(
                 {
                     "cmd": r.cmd,
                     "status": _status(r),
-                    "note": PRELUDE_NOTES.get(r.cmd, "" if r.ok else r.headline),
+                    "note": PRELUDE_NOTES.get(r.cmd, "" if r.ok else _code(r.headline)),
                 }
                 for r in steps
             ],
@@ -128,14 +128,15 @@ def render(report: Report, day: date | None = None) -> str:
     ]
     lines += ["", "## Read first"]
     lines += [
-        f"- {item['path']}: {item['why']}".rstrip(": ") for item in report["read_first"]
+        f"- {_code(item['path'])}: {item['why']}".rstrip(": ")
+        for item in report["read_first"]
     ] or ["- Nothing flagged."]
     return "\n".join(lines) + "\n"
 
 
 def _step_line(index: int, step: dict[str, str]) -> str:
     note = step["note"].rstrip(".")
-    return f"{index}. [{step['status']}] {step['cmd']}" + (
+    return f"{index}. [{step['status']}] {_code(step['cmd'])}" + (
         f"   ({note})" if note else ""
     )
 
@@ -144,9 +145,14 @@ def _check_line(check: dict[str, str]) -> str:
     if not check["cmd"]:
         return "[untested] no verification command ran"
     evidence = [line.strip() for line in check["evidence"].splitlines() if line.strip()]
-    return f"[{check['status']}] {check['cmd']}" + (
-        f"  ->  {evidence[-1]}" if evidence else ""
+    return f"[{check['status']}] {_code(check['cmd'])}" + (
+        f"  ->  {_code(evidence[-1])}" if evidence else ""
     )
+
+
+def _code(text: str) -> str:
+    """Inline code, so names like __init__.py and <workspace> survive Markdown."""
+    return f"`` {text} ``" if "`" in text else f"`{text}`"
 
 
 def _gotcha_line(obstacle: dict[str, Any]) -> str:

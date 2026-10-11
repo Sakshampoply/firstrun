@@ -49,6 +49,7 @@ Anything else is "untested". Statuses are only passed, failed, untested.
 - setup_steps: the setup commands in the order you ran them, failed ones included. Leave out the venv step; \
 FirstRun adds it.
 - obstacles: every place the README or repo misled you, with the workaround that worked.
+- In summary, notes, obstacles and why, put commands and file names in backticks.
 - Keep it tight: summary in two sentences, notes under ten words, read_first at most {report.MAX_READ_FIRST} files \
 a newcomer should open first.
 - Budget: {MAX_TOOL_CALLS} tool calls and {TOTAL_BUDGET_S} seconds for the whole run."""
