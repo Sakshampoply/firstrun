@@ -280,3 +280,4 @@ Kill rules:
 - D32 (Codex) UI local paths resolve relative to the project root. Live mode remains the default; replay is explicitly selected and labelled, and the displayed result retains its original source label across widget changes.
 - D33 (Codex) No ANTHROPIC_API_KEY is available in this shell for Phase 2; skip paid live validation and do not create or publish a fixture recording. Validate the missing-key exit path and prewarm cache using a disposable fixture copy instead.
 - D34 (Codex) The installed Ruff also formats Markdown Python fences; exclude PLAN.md from formatting to preserve its verbatim frozen event-contract example. Keep the required events.py/fixtures exclusions for check and format.
+- D35 (Codex) Restart Streamlit after pulling replacement agent modules: a running server can retain the Phase 0 stub in Python's import cache even after frontend reload. Phase 2 browser validation uses a fresh process.

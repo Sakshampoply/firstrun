@@ -2,7 +2,7 @@
 
 Paste a repo, get a quickstart the agent has actually tested.
 
-FirstRun reads a small Python repository, attempts its setup, investigates failures, and produces QUICKSTART.md with actual command evidence. One Claude tool loop drives the run; the CLI and Streamlit UI display its events.
+FirstRun reads a small Python repository, attempts its setup, investigates failures, and produces QUICKSTART.md with actual command evidence. One Claude tool loop drives the run; the CLI and Streamlit UI display its events. Restart Streamlit after pulling new agent modules so it loads the current implementation.
 
 ## Three commands
 
