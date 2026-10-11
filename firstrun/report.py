@@ -14,7 +14,6 @@ INSTALL_CMD = re.compile(
     r"\b(pip3?|uv|poetry|pdm|pipenv|conda|npm|pnpm|yarn)\s+(\w+\s+)?(install|sync|add)\b"
 )
 MAX_READ_FIRST = 5
-PRELUDE_NOTES = {VENV_CMD: "activate with `source .venv/bin/activate`"}
 
 TOP = {"target": "text?", "name": "text", "summary": "text"}
 READ_FIRST = {"path": "text", "why": "text?"}
@@ -73,7 +72,7 @@ def reconcile(report: Report, history: list[CommandResult]) -> Report:
     """Make every status and the evidence match what actually ran in this session."""
     listed = {_argv(step["cmd"]) for step in report["setup_steps"]}
     prelude = [
-        {"cmd": r.cmd, "status": _status(r), "note": PRELUDE_NOTES.get(r.cmd, "")}
+        {"cmd": r.cmd, "status": _status(r), "note": _prelude_note(r.cmd)}
         for r in history
         if r.purpose == "prelude" and _argv(r.cmd) not in listed
     ]
@@ -105,7 +104,7 @@ def partial(
                 {
                     "cmd": r.cmd,
                     "status": _status(r),
-                    "note": PRELUDE_NOTES.get(r.cmd, "" if r.ok else _failure_note(r)),
+                    "note": _prelude_note(r.cmd) or ("" if r.ok else _failure_note(r)),
                 }
                 for r in steps
             ],
@@ -161,6 +160,15 @@ def _check_line(check: dict[str, str]) -> str:
     return f"[{check['status']}] {_code(check['cmd'])}" + (
         f"  ->  {_code(evidence[-1])}" if evidence else ""
     )
+
+
+def _prelude_note(cmd: str) -> str:
+    """How the reader carries on after a step FirstRun ran for them."""
+    if cmd == VENV_CMD:
+        return "activate with `source .venv/bin/activate`"
+    if cmd.startswith("git clone"):
+        return f"then `cd {cmd.split()[-1]}`"
+    return ""
 
 
 def _failure_note(result: CommandResult) -> str:
