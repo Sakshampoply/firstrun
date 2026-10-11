@@ -1,6 +1,8 @@
 """Replay saved events without calling a model or running repository code."""
+
 import time
-from typing import Iterator
+from collections.abc import Iterator
+
 from firstrun.events import Event, read_jsonl
 
 
