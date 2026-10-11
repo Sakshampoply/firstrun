@@ -34,17 +34,17 @@ CSS = """
 }
 header[data-testid="stHeader"] { background: transparent; }
 #MainMenu, footer, [data-testid="stToolbar"] { display: none; }
-.block-container { padding-top: 2.2rem; max-width: 1440px; }
+.block-container { padding-top: 1.1rem; max-width: 1440px; }
 
 .fr-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: .4rem; }
 .fr-brand { display: flex; align-items: center; gap: .8rem; }
-.fr-logo { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 1.3rem;
+.fr-logo { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 1.3rem;
   color: white; background: linear-gradient(135deg, var(--violet), var(--cyan));
   box-shadow: 0 10px 40px rgba(139, 92, 246, .45); }
-.fr-word { font-size: 2.6rem; font-weight: 800; letter-spacing: -.04em; line-height: 1;
+.fr-word { font-size: 2.15rem; font-weight: 800; letter-spacing: -.04em; line-height: 1;
   background: linear-gradient(90deg, #fff 30%, #c4b5fd 70%, var(--cyan));
   -webkit-background-clip: text; background-clip: text; color: transparent; }
-.fr-hero p.fr-tag { color: var(--muted); font-size: 1.15rem; margin: .6rem 0 0; }
+.fr-hero p.fr-tag { color: var(--muted); font-size: 1.05rem; margin: .3rem 0 0; }
 .fr-mode { font: 600 .85rem/1 var(--mono); letter-spacing: .12em; padding: .55rem .8rem; border-radius: 999px;
   border: 1px solid var(--line); background: var(--panel); }
 .fr-mode.live { color: var(--pass); } .fr-mode.replay { color: var(--warn); border-color: rgba(251, 191, 36, .45); }
@@ -56,11 +56,11 @@ header[data-testid="stHeader"] { background: transparent; }
 .fr-banner.blocked { color: var(--warn); background: var(--warn-bg); border-color: rgba(251, 191, 36, .35); }
 .fr-banner.error { color: var(--fail); background: var(--fail-bg); border-color: rgba(251, 113, 133, .35); }
 
-.fr-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: .9rem; margin: 1rem 0 1.4rem; }
+.fr-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin: .5rem 0 1rem; }
 .fr-stat { background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line);
-  border-radius: 16px; padding: 1rem 1.2rem; }
+  border-radius: 16px; padding: .7rem 1rem; }
 .fr-stat .k { color: var(--faint); font-size: .8rem; text-transform: uppercase; letter-spacing: .14em; }
-.fr-stat .v { font-size: 1.9rem; font-weight: 750; letter-spacing: -.02em; margin-top: .25rem; }
+.fr-stat .v { font-size: 1.65rem; font-weight: 750; letter-spacing: -.02em; margin-top: .25rem; }
 .fr-stat .s { color: var(--muted); font-size: .95rem; }
 .fr-stat.pass .v { color: var(--pass); } .fr-stat.fail .v { color: var(--fail); }
 .fr-stat.warn .v { color: var(--warn); } .fr-stat.run .v { color: #c4b5fd; }
@@ -386,9 +386,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-source_col, target_col, run_col = st.columns(
-    [1.25, 5, 1.2], vertical_alignment="bottom"
-)
+source_col, target_col, run_col = st.columns([1.6, 5, 1.3], vertical_alignment="bottom")
 with source_col:
     mode = (
         st.segmented_control("Source", ["Live", "Replay"], key="mode", default="Live")
