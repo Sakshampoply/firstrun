@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shlex
 from datetime import date
 from typing import Any
@@ -9,6 +10,9 @@ from typing import Any
 from firstrun.runner import VENV_CMD, CommandResult
 
 STATUSES = ("passed", "failed", "untested")
+INSTALL_CMD = re.compile(
+    r"\b(pip3?|uv|poetry|pdm|pipenv|conda|npm|pnpm|yarn)\s+(\w+\s+)?(install|sync|add)\b"
+)
 MAX_READ_FIRST = 5
 PRELUDE_NOTES = {VENV_CMD: "activate with `source .venv/bin/activate`"}
 
@@ -51,9 +55,18 @@ def validate(report: object) -> Report:
         "elapsed_s": _number(report, "elapsed_s", problems),
         "tool_calls": int(_number(report, "tool_calls", problems)),
     }
+    if is_install(clean["verification"].get("cmd", "")):
+        problems.append(
+            "verification.cmd is an install; verify with the tests or a smoke command instead"
+        )
     if problems:
         raise ReportError("; ".join(problems))
     return clean
+
+
+def is_install(cmd: str) -> bool:
+    """Installing proves nothing about whether the project runs."""
+    return bool(INSTALL_CMD.search(cmd))
 
 
 def reconcile(report: Report, history: list[CommandResult]) -> Report:

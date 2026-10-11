@@ -25,6 +25,9 @@ DENIED_EXIT = 126
 TIMEOUT_EXIT = 124
 DRAIN_S = 5
 VENV_CMD = "uv venv .venv"
+STRICT_SHELL = "set -eo pipefail"
+PYTHON_MARKERS = ("pyproject.toml", "setup.py", "setup.cfg")
+MAX_REPO_FILES = 2000
 GITHUB_URL = re.compile(r"^https://github\.com/[\w.-]+/[\w.-]+?(\.git)?/?$")
 SECRET_ENV = re.compile(r"KEY|TOKEN|SECRET|PASSWORD", re.IGNORECASE)
 COPY_SKIP = shutil.ignore_patterns(
@@ -41,6 +44,10 @@ DENYLIST = (
     (re.compile(r"\bchown\b"), "chown"),
     (re.compile(r"\bdocker\b"), "docker"),
     (re.compile(r"\bgit\s+push\b"), "git push"),
+    (
+        re.compile(r"\b(npm|npx|pnpm|yarn|bun|cargo|brew|apt|apt-get)\b"),
+        "non-Python tooling",
+    ),
 )
 
 
@@ -108,7 +115,7 @@ class Workspace:
 
 
 def prepare(target: str) -> Generator[Event, None, Workspace]:
-    """Copy or clone the target into a temp dir and create its venv."""
+    """Copy or clone the target into a temp dir, check it is a small Python repo, create its venv."""
     root = Path(tempfile.mkdtemp(prefix="firstrun-")).resolve()
     ws = Workspace(root=root, repo=root / "repo")
     try:
@@ -117,6 +124,7 @@ def prepare(target: str) -> Generator[Event, None, Workspace]:
         else:
             yield Event("status", f"Copying {target} into a scratch workspace")
             _copy(ws, target)
+        _check_scope(ws.repo)
         yield Event("status", "Creating a fresh venv")
         venv = yield from _run(ws, VENV_CMD, ws.repo, 120, "prelude")
         if not venv.ok:
@@ -174,6 +182,27 @@ def _tokens(cmd: str) -> list[str]:
         return cmd.split()
 
 
+def _check_scope(repo: Path) -> None:
+    if not any((repo / name).is_file() for name in PYTHON_MARKERS) and not any(
+        repo.glob("requirements*.txt")
+    ):
+        raise WorkspaceError(
+            "Out of scope: no pyproject.toml, setup.py or requirements.txt at the repo root. "
+            "FirstRun handles small Python repos."
+        )
+    files = sum(len(names) for _, _, names in _walk_files(repo))
+    if files > MAX_REPO_FILES:
+        raise WorkspaceError(
+            f"Out of scope: {files} files. FirstRun handles small repos (up to {MAX_REPO_FILES})."
+        )
+
+
+def _walk_files(repo: Path) -> Generator[tuple[str, list[str], list[str]], None, None]:
+    for dirpath, dirs, names in os.walk(repo):
+        dirs[:] = [d for d in dirs if d != ".git"]
+        yield dirpath, dirs, names
+
+
 def _copy(ws: Workspace, target: str) -> None:
     source = Path(target).expanduser()
     if not source.is_dir():
@@ -217,9 +246,9 @@ def _execute(
     cmd: str, cwd: Path, env: dict[str, str], timeout_s: float, purpose: str
 ) -> CommandResult:
     started = time.monotonic()
+    # Strict bash: a failure anywhere in a `;` chain or a pipe fails the whole step.
     proc = subprocess.Popen(
-        cmd,
-        shell=True,
+        ["/bin/bash", "-c", f"{STRICT_SHELL}\n{cmd}"],
         cwd=cwd,
         env=env,
         stdin=subprocess.DEVNULL,

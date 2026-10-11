@@ -41,11 +41,14 @@ suspect it is stale. The point is to observe what really happens.
 3. Recover: if a setup or verify command fails, read the error, then retry with one corrected command and pass \
 `hypothesis`. At most {MAX_RECOVERIES} retries per failing step; after that, report the failure.
 4. Verify: run the smallest command that proves the project works: `pytest -q` if there are tests, else the \
-smallest smoke command from the README. If the README has a run command, try it too.
+smallest smoke command from the README. If the README has a run command, try it too, with purpose "verify". \
+An install is never verification.
 5. Report: call write_report as soon as verification passes, or as soon as FirstRun says the budget is nearly used.
 
 Rules:
-- Use `uv pip install`, never bare `pip install`. Never create another venv.
+- Use `uv pip install`, never bare `pip install`. Never create another venv. Python tooling only.
+- One command per run_command call: no `;` chains and no pipes into tail or head. Commands run with \
+`set -eo pipefail` and FirstRun already keeps the output tail, so each step gets its own honest exit code.
 - Every command in the report must have run through run_command in this run, written exactly as you ran it. \
 Anything else is "untested". Statuses are only passed, failed, untested.
 - Never invent output. Verification evidence is one line copied from the real output, e.g. "1 passed in 0.02s".

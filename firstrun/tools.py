@@ -78,8 +78,10 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "run_command",
         "description": "Run a shell command from the repo root with the project venv active. Returns exit_code, "
-        "duration_s and the last 3000 chars of stdout and stderr. 90 s timeout, so do not start servers or background "
-        "jobs. sudo, rm -rf, chmod, chown, docker, "
+        "duration_s and the last 3000 chars of stdout and stderr. Runs in bash with `set -eo pipefail`, so run one "
+        "command per call and do not pipe into tail or head. 90 s timeout, so do not start servers or background "
+        "jobs. Python only: npm, pnpm, yarn, cargo, brew and apt are rejected, as are sudo, rm -rf, chmod, chown, "
+        "docker, "
         "git push, curl|sh and paths outside the repo are rejected with exit code 126.",
         "input_schema": {
             "type": "object",
@@ -88,7 +90,8 @@ TOOLS: list[dict[str, Any]] = [
                 "purpose": {
                     "type": "string",
                     "enum": ["inspect", "setup", "verify"],
-                    "description": "inspect: looking around. setup: installing. verify: proving the project works.",
+                    "description": "inspect: read-only looks (ls, cat, --version). setup: installing. "
+                    "verify: the tests or the README's run or smoke command.",
                 },
                 "hypothesis": {
                     "type": "string",
@@ -283,6 +286,8 @@ def _run_command(ctx: Context, args: dict[str, Any]) -> Generator[Event, None, O
         if args.get("purpose") in ("inspect", "setup", "verify")
         else "setup"
     )
+    if purpose == "verify" and report.is_install(cmd):
+        purpose = "setup"
     timeout = min(ctx.cmd_timeout_s, max(1.0, ctx.deadline - time.monotonic()))
     result = yield from runner.run_command(ctx.ws, cmd, timeout, purpose)
     if purpose == "verify" and result.ok:
