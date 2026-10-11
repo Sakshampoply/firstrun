@@ -23,6 +23,7 @@ from firstrun.events import Event
 TAIL_CHARS = 3000
 DENIED_EXIT = 126
 TIMEOUT_EXIT = 124
+DRAIN_S = 5
 VENV_CMD = "uv venv .venv"
 GITHUB_URL = re.compile(r"^https://github\.com/[\w.-]+/[\w.-]+?(\.git)?/?$")
 SECRET_ENV = re.compile(r"KEY|TOKEN|SECRET|PASSWORD", re.IGNORECASE)
@@ -68,7 +69,7 @@ class CommandResult:
 
     @property
     def headline(self) -> str:
-        """The most telling output line: the first error line, else the last line."""
+        """The most telling output line: the last error line on failure, else the last line."""
         lines = [line.strip() for line in self.output.splitlines() if line.strip()]
         if not lines:
             return ""
@@ -233,7 +234,7 @@ def _execute(
         exit_code = proc.returncode
     except subprocess.TimeoutExpired:
         _kill(proc)
-        stdout, stderr = proc.communicate()
+        stdout, stderr = _drain(proc)
         exit_code, stderr = (
             TIMEOUT_EXIT,
             f"{stderr}\nKilled by FirstRun after {timeout_s:.0f}s",
@@ -250,16 +251,37 @@ def _execute(
 def _kill(proc: subprocess.Popen[str]) -> None:
     try:
         os.killpg(proc.pid, signal.SIGKILL)
-    except ProcessLookupError:
+    except OSError:
         pass
 
 
+def _drain(proc: subprocess.Popen[str]) -> tuple[str, str]:
+    """Output of a killed command, giving up if a detached child still holds the pipes."""
+    try:
+        return proc.communicate(timeout=DRAIN_S)
+    except subprocess.TimeoutExpired as exc:
+        for pipe in (proc.stdout, proc.stderr):
+            if pipe:
+                pipe.close()
+        proc.wait()
+        return _decode(exc.output), _decode(exc.stderr)
+
+
+def _decode(data: str | bytes | None) -> str:
+    if isinstance(data, bytes):
+        return data.decode(errors="replace")
+    return data or ""
+
+
 def _env(venv: Path) -> dict[str, str]:
-    """Inherited env minus secrets, with the target venv active instead of FirstRun's own."""
+    """Inherited env minus secrets, with the target venv active instead of FirstRun's own.
+
+    GIT_CONFIG_* goes as a set: dropping only GIT_CONFIG_KEY_n would break every git command.
+    """
     env = {
         k: v
         for k, v in os.environ.items()
-        if not SECRET_ENV.search(k) and not k.startswith("ANTHROPIC_")
+        if not SECRET_ENV.search(k) and not k.startswith(("ANTHROPIC_", "GIT_CONFIG_"))
     }
     own_bin = str(Path(sys.prefix) / "bin")
     path = [p for p in env.get("PATH", "").split(os.pathsep) if p and p != own_bin]

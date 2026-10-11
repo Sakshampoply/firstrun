@@ -21,8 +21,11 @@ CMD_TIMEOUT_S = 90
 TOTAL_BUDGET_S = 300
 MAX_TOKENS = 16000
 API_TIMEOUT_S = 120
+API_MIN_TIMEOUT_S = 45
+API_RETRIES = 1
 WRAP_UP_CALLS = 3
 WRAP_UP_S = 60
+NUDGE = "You stopped without calling write_report. Call it now, listing only commands that ran."
 
 SYSTEM_PROMPT = f"""You are FirstRun. You take an unfamiliar Python repository, try its setup instructions for real, \
 and write a short quickstart the next developer can trust.
@@ -64,6 +67,7 @@ class Session:
     ctx: tools.Context
     failing: CommandResult | None = None
     recoveries: int = 0
+    nudged: bool = False
 
 
 def run(target: str) -> Iterator[Event]:
@@ -93,7 +97,7 @@ def _session(target: str) -> Generator[Event, None, Event]:
 
 def _loop(s: Session) -> Generator[Event, None, Event]:
     model = os.environ.get("FIRSTRUN_MODEL") or DEFAULT_MODEL
-    client = anthropic.Anthropic(timeout=API_TIMEOUT_S)
+    client = anthropic.Anthropic(max_retries=API_RETRIES)
     messages: list[dict[str, Any]] = [
         {
             "role": "user",
@@ -111,11 +115,18 @@ def _loop(s: Session) -> Generator[Event, None, Event]:
                 tools=tools.TOOLS,
                 messages=messages,
                 output_config={"effort": "medium"},
+                timeout=_api_timeout(s),
             )
+            if response.stop_reason in ("refusal", "max_tokens"):
+                raise Blocked(_no_tool_reason(response.stop_reason))
             messages.append({"role": "assistant", "content": response.content})
             uses = [block for block in response.content if block.type == "tool_use"]
             if not uses:
-                raise Blocked(_no_tool_reason(response.stop_reason))
+                if s.nudged:
+                    raise Blocked(_no_tool_reason(response.stop_reason))
+                s.nudged = True
+                messages.append({"role": "user", "content": NUDGE})
+                continue
             results: list[dict[str, Any]] = []
             for use in uses:
                 outcome = yield from _dispatch(
@@ -192,12 +203,18 @@ def _wrap_up_note(s: Session) -> list[dict[str, str]]:
     return [{"type": "text", "text": text}]
 
 
+def _api_timeout(s: Session) -> float:
+    """Keep one API call inside the run's budget, with room for the final write_report turn."""
+    remaining = s.ctx.deadline - time.monotonic()
+    return max(API_MIN_TIMEOUT_S, min(API_TIMEOUT_S, remaining))
+
+
 def _no_tool_reason(stop_reason: str | None) -> str:
     if stop_reason == "refusal":
         return "the model declined the request"
     if stop_reason == "max_tokens":
         return "the model's reply hit max_tokens"
-    return "the model stopped without writing a report"
+    return "the model stopped twice without writing a report"
 
 
 def _report_ready(checked: report.Report) -> Event:

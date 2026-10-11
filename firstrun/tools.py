@@ -78,7 +78,8 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "run_command",
         "description": "Run a shell command from the repo root with the project venv active. Returns exit_code, "
-        "duration_s and the last 3000 chars of stdout and stderr. 90 s timeout. sudo, rm -rf, chmod, chown, docker, "
+        "duration_s and the last 3000 chars of stdout and stderr. 90 s timeout, so do not start servers or background "
+        "jobs. sudo, rm -rf, chmod, chown, docker, "
         "git push, curl|sh and paths outside the repo are rejected with exit code 126.",
         "input_schema": {
             "type": "object",

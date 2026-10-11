@@ -92,7 +92,7 @@ def partial(
                 {
                     "cmd": r.cmd,
                     "status": _status(r),
-                    "note": PRELUDE_NOTES.get(r.cmd, "" if r.ok else _code(r.headline)),
+                    "note": PRELUDE_NOTES.get(r.cmd, "" if r.ok else _failure_note(r)),
                 }
                 for r in steps
             ],
@@ -148,6 +148,10 @@ def _check_line(check: dict[str, str]) -> str:
     return f"[{check['status']}] {_code(check['cmd'])}" + (
         f"  ->  {_code(evidence[-1])}" if evidence else ""
     )
+
+
+def _failure_note(result: CommandResult) -> str:
+    return _code(result.headline) if result.headline else f"exit {result.exit_code}"
 
 
 def _code(text: str) -> str:
