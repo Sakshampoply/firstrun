@@ -26,9 +26,9 @@ Repeat without `--fast`. Expected: same result, with short pauses capped at 1.5 
 uv run streamlit run firstrun/ui.py
 ```
 
-Open http://localhost:8501. Select **REPLAY**, choose **sample.jsonl**, enable **Fast replay**, click **Run**.
+Open http://localhost:8501. Switch **Source** to **Replay**, choose **sample.jsonl**, enable **Fast replay**, click **Replay ▶**.
 
-Expected: visible REPLAY label; activity appended in order; failed install, recovery and successful pytest; rendered QUICKSTART.md, verification output, gotchas and reading list, followed by a compact ✅/❌/⚪ setup table. Output blocks should contain at most six lines. Download QUICKSTART.md and compare its content to the CLI file. The feed and report should remain visible after clicking Download or changing another control.
+Expected: visible REPLAY label; activity appended in order; failed install, recovery and successful pytest; Outcome/Commands/Recoveries/Time tiles; a report card with passed/failed/untested chips, verification evidence, gotchas and reading list; the raw file on the QUICKSTART.md tab. Output blocks contain at most six lines. Download QUICKSTART.md and compare its content to the CLI file. The feed and report should remain visible after clicking Download or changing another control.
 
 Turn off Fast replay and run again. Expected: events appear incrementally; the previous run is cleared.
 

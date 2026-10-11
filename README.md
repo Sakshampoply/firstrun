@@ -14,7 +14,7 @@ uv run python -m firstrun --replay runs/sample.jsonl --fast
 uv run streamlit run firstrun/ui.py
 ```
 
-In the UI select **REPLAY**, choose `sample.jsonl`, then **Run**. The activity feed shows a failed install, recovery and passing pytest; the report can be downloaded as QUICKSTART.md. The sample is illustrative: actual fixture command checks, scripted narration and synthetic event timing.
+In the UI switch **Source** to **Replay**, choose `fixture.jsonl` (real run) or `sample.jsonl` (illustrative), then **Replay ▶**. The activity feed shows a failed install, recovery and passing pytest; the report can be downloaded as QUICKSTART.md. The sample is illustrative: actual fixture command checks, scripted narration and synthetic event timing.
 
 ## Live run
 
