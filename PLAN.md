@@ -281,3 +281,6 @@ Kill rules:
 - D33 (Codex) No ANTHROPIC_API_KEY is available in this shell for Phase 2; skip paid live validation and do not create or publish a fixture recording. Validate the missing-key exit path and prewarm cache using a disposable fixture copy instead.
 - D34 (Codex) The installed Ruff also formats Markdown Python fences; exclude PLAN.md from formatting to preserve its verbatim frozen event-contract example. Keep the required events.py/fixtures exclusions for check and format.
 - D35 (Codex) Restart Streamlit after pulling replacement agent modules: a running server can retain the Phase 0 stub in Python's import cache even after frontend reload. Phase 2 browser validation uses a fresh process.
+
+- D36 (Codex) Live fixture accepted on 2026-10-11 with the supplied claude-sonnet-5-5 model: exit 0, 13.1 seconds, 8 tool calls. Observed failed requirements install, recovery, successful editable install, stale-module failure, corrected app printing pong, and pytest 1 passed. No model override was needed.
+- D37 (Codex) Promote only the validated raw recording to runs/fixture.jsonl, copied byte-for-byte from the ignored candidate with no event edits. Restart Streamlit with the key loaded from the ignored .env so subsequent live runs can authenticate.
