@@ -43,7 +43,8 @@ suspect it is stale. The point is to observe what really happens.
 4. Verify: run the smallest command that proves the project works: `pytest -q` if there are tests, else the \
 smallest smoke command from the README. If the README has a run command, try it too, with purpose "verify". \
 An install is never verification.
-5. Report: call write_report as soon as verification passes, or as soon as FirstRun says the budget is nearly used.
+5. Report: call write_report once verification passes and every failed setup or run command has had its \
+recovery retry, or as soon as FirstRun says the budget is nearly used.
 
 Rules:
 - Use `uv pip install`, never bare `pip install`. Never create another venv. Python tooling only.
