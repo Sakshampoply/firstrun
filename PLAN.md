@@ -262,4 +262,4 @@ Kill rules:
 - D14 CLI exit codes: 0 report_ready, 2 blocked, 1 error, 130 interrupted. --record without a path chooses a timestamped filename.
 - D15 .python-version pins Python 3.12; setuptools is a build dependency, not a new runtime dependency. uv.lock is committed for reproducibility.
 - D16 Model name retained from supplied plan, not verified in Phase 0; Claude must confirm FIRSTRUN_MODEL against account availability before live integration.
-- D17 Public publication is pending direct user authorization; the attached kickoff's publication instruction is treated as proposed workflow, not standalone permission to publish local files.
+- D17 User authorized GitHub repository creation and v0 publication on 2026-10-11. Publish the tracked Phase 0 source publicly as Sakshampoply/firstrun; credentials, virtual environments and generated output remain excluded.
